@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('longjohn')
 const discord = require("discord.js");
 const config = require("./config/config.json");
 //const token = require("./config/token.json");
@@ -14,7 +15,6 @@ bot.on("message", (message) => {
     if (message.author.bot) return;
     if (message.channel.type === "dm") return;
 
-    //command processing
     const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
     const command = args.shift().toLowerCase();
     commandCheck(message, command, args);
@@ -23,6 +23,11 @@ bot.on("message", (message) => {
 /*This is the main message handing function
 It will handle incoming messages and run the appropriate function if a command is detected*/
 function commandCheck(message, command, args) {
+    if (!message.content.startsWith(config.prefix)) {
+        userMap.add(message)
+        guildMap.setActive(message.guild.id);
+        return;
+    }
     switch (command) {
         //------------------- USERMAP FUNCTIONS -------------------
         //Calculate a user's score
@@ -105,19 +110,25 @@ function commandCheck(message, command, args) {
             break;
 
         //------------------- BOT FUNCTIONS -------------------
-        //Log all messages that aren't recognized commands
-        default:
-            //console.log(message);
-            if (logging) {
-                userMap.add(message)
-                guildMap.setActive(message.guild.id);
-                break;
-            }
         case "help":
             message.channel.send(new discord.RichEmbed()
                 .setColor(0x5eecff)
-                .setTitle("Monitori help")
-                .addField("Commands", "**$score:** View your current score\n **$leaderboard <args>:** View server leaderboards (arguments: score, points)")
+                .setTitle("Monitori Help")
+                .addField("About Me",
+                    "Hello! My name is Monitori! I am a bot that encourages positive engagement by rewarding points to users who frequently talk on this server."
+                    + "The more positive your messages are, the more points you'll earn!\n\n"
+                )
+                .addField("Commands",
+                    "You can view your current score by typing **$m score** in chat. You can see the most impactful people on this server by typing **$m leaderboard points**."
+                    + "You can also see who has the highest overall positivity using **$m leaderboard score**"
+                )
+                .addField("Additional Info",
+                    "Monitori is currently being hosting on a Raspberry Pi B+. I'm looking into upgrading my hosting platform if this becomes significantly popular :>\n"
+                    + "* [Github](https://github.com/TheEducatedPickle/Monitori)\n"
+                    + "* [Support Server & Suggestion Box](https://discord.gg/s45pCZC)\n"
+                    + "* [Upvote me on Discord Bots!](https://discordbots.org/bot/480595801869910016)\n"
+                    + "* [My creator is looking for a job! (austinyuan.com)](https://austinyuan.com)"
+                )
             );
             break;
         //Show logging status
@@ -190,7 +201,7 @@ function payout(message) {
             .addField("Points:", userMap.points(id) + " pts")
             .addField("Sentiment rating:",
                 (Math.round(currScore * 1000) / 1000) + " (" + ((currScore >= prevScore) ? "increased " : "decreased ")
-                + Math.round(Math.abs(currScore - prevScore)*1000)/1000 + " from " + Math.round(prevScore * 1000) / 1000 + ")"));
+                + Math.round(Math.abs(currScore - prevScore) * 1000) / 1000 + " from " + Math.round(prevScore * 1000) / 1000 + ")"));
         userMap.shiftScore(id);
     }
 }
@@ -272,6 +283,11 @@ if (process.env.glitchHosting === "true") {
         http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
     }, 280000);
 }
+
+//Log errors
+bot.on("error", (e) => console.error(e));
+bot.on("warn", (e) => console.warn(e));
+bot.on("debug", (e) => console.info(e));
 
 //Starts bot login
 bot.login(process.env.token);

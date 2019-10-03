@@ -1,6 +1,13 @@
 const userMap = require("./userMap");
 const config = require("./config/config.json");
 const sql = require("sqlite");
+
+try {
+    process.chdir(config.dbStoreDirectory);
+} catch (err) {
+    console.log('Directory not available')
+}
+
 sql.open("./users.sqlite");
 
 module.exports = {
@@ -43,7 +50,7 @@ function writeUserToSQL(userID) {
         } else {
             sql.run(`UPDATE users SET points = ${userMap.points(userID)}, score = ${userMap.score(userID)}, totalMessages = ${userMap.totalMessages(userID)} WHERE userID = ${userID}`);
         }
-        console.log("SQL: User " + userID + " entered");
+        //console.log("SQL: User " + userID + " entered");
     }).catch(() => {
         console.error;
         sql.run("CREATE TABLE IF NOT EXISTS users (userID TEXT, points INTEGER, score INTEGER, totalMessages INTEGER)").then(() => {

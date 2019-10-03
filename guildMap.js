@@ -16,12 +16,14 @@ class Guild {
     //This timer is used to detect when an active conversation has ended so the bot
     //can automatically analyze messages once the conversation has ended
     setTimer(time = config.autopayOnInactivityTime * 1000) {
-        let id = this.id;
-        clearTimeout(this.timer);
-        this.timer = setTimeout(function run() {
-            console.log("Detected guild inactivity at " + id + ", analyzing cache");
-            userMap.updateMemberScores(bot.guilds.get(id).members);
-        }, time);
+        if (time != 0) {
+            let id = this.id;
+            clearTimeout(this.timer);
+            this.timer = setTimeout(function run() {
+                console.log("Detected guild inactivity at " + id + ", analyzing cache");
+                userMap.updateMemberScores(bot.guilds.get(id).members);
+            }, time);
+        }
     }
 }
 
@@ -50,7 +52,7 @@ module.exports = {
     Returns a formatted string of users to be printed by bot
     */
     leaderboard: function (guild, type) {
-        guildID = guild.id;
+        let guildID = guild.id;
         console.log("Generating leaderboard for guild: " + guildID);
         var members = [];
         var ids = [];
@@ -101,7 +103,7 @@ module.exports = {
             process.exit(1);
         }
         console.log("Member list change detected on guild " + guildID);
-        flaggedGuild = guildMap.get(guildID);
+        let flaggedGuild = guildMap.get(guildID);
         flaggedGuild.userListModified = true;
         flaggedGuild.pointsBoard = null;
         flaggedGuild.scoreBoard = null;
